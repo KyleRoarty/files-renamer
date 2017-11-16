@@ -13,39 +13,81 @@ valid_arg() {
     fi
 }
 
+# Rename including passed numbers
+rename_i(){
+    indArr=$1
+    last=$2
+    len=$3
+
+    for f in *.*
+    do
+        mv -- "$f"\
+              "$(awk -v var="${indArr[*]}" -v l="$len" -v num="$last" -F '[ .]'\
+                 'BEGIN {split(var, varArr, / /)}
+                  { for(x in varArr) printf "%s ",$varArr[x] }
+                  { if(l != 0) {printf "- "} }
+                  { printf "%s.%s",$num,$NF }' <<< "$f")"
+    done
+}
+
+# Rename excluding passed numbers
+rename_x(){
+    indArr=$1
+
+    for f in *.*
+    do
+        mv -- "$f"\
+              "$(awk -v var="${indArr[*]}" -v l="$len" -F '[ .]'\
+              'BEGIN {split(var, varArr,  / /)}
+              { for(i=1; i <NF; i++) resArray[i]=0 }
+              { for(x in varArr) delete resArray[varArr[x]] }
+              { for(x in resArray) printf "%s ",$x }
+              { printf ".%s",$NF }' <<< "$f")"
+    done
+}
 
 #array=${@:1:$(($#-1))}
 #len=${#array[@]}
 
 OPTIND=1
 
+mutex=0
+
 indArr=()
 last=""
-indStr=""
 len=0
 
-while getopts "i:" opt; do
+indStr=""
+excStr=""
+
+
+while getopts "i:x:" opt; do
     case "$opt" in
     i)
-        indStr=$OPTARG
-        indArr=(${indStr//,/ })
-        last=${indArr[-1]}
+        if [[ $mutex -eq 0 ]]; then
+            indStr=$OPTARG
+            indArr=(${indStr//,/ })
+            last=${indArr[-1]}
 
-        unset 'indArr[${#arr[@]}-1]'
-        len=${#indArr[@]}
+            unset 'indArr[${#arr[@]}-1]'
+            len=${#indArr[@]}
+            mutex=1
+        fi
         ;;
+    x)
+        if [[ $mutex -eq 0 ]]; then
+            excStr=$OPTARG
+            indArr=(${excStr//,/ })
+
+            mutex=1
+        fi
     esac
 done
 
-echo $indArr
-valid_arg $indStr
+if [[ ! -z $indStr ]]; then
+    rename_i $indArr $last $len
+elif [[ ! -z $excStr ]]; then
+    rename_x $indArr
+fi
 
-for f in *.*
-do
-    mv -- "$f"\
-          "$(awk -v var="${indArr[*]}" -v l="$len" -v num="$last" -F '[ .]'\
-             'BEGIN {split(var, varArr, / /)}
-              { for(x in varArr) printf "%s ",$varArr[x] }
-              { if(l != 0) {printf "- "} }
-              { printf "%s.%s",$num,$NF }' <<< "$f")"
-done
+
