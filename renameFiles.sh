@@ -41,7 +41,7 @@ rename_x(){
               'BEGIN {split(var, varArr,  / /)}
               { for(i=1; i <NF; i++) resArray[i]=0 }
               { for(x in varArr) delete resArray[varArr[x]] }
-              { for(x in resArray) printf "%s ",$x }
+              { y=0; for(x in resArray) {if(y==0) {printf "%s",$x; y=1} else {printf " %s",$x} }}
               { printf ".%s",$NF }' <<< "$f")"
     done
 }
