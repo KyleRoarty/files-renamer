@@ -17,12 +17,11 @@ valid_arg() {
 rename_i(){
     indArr=$1
     last=$2
-    len=$3
 
     for f in *.*
     do
         mv -- "$f"\
-              "$(awk -v var="${indArr[*]}" -v l="$len" -v num="$last" -F '[ .]'\
+              "$(awk -v var="${indArr[*]}" -v num="$last" -F '[ .]'\
                  'BEGIN {split(var, varArr, / /)}
                   { for(x in varArr) printf "%s ",$varArr[x] }
                   { if(l != 0) {printf "- "} }
@@ -37,17 +36,14 @@ rename_x(){
     for f in *.*
     do
         mv -- "$f"\
-              "$(awk -v var="${indArr[*]}" -v l="$len" -F '[ .]'\
+              "$(awk -v var="${indArr[*]}" -F '[ .]'\
               'BEGIN {split(var, varArr,  / /)}
               { for(i=1; i <NF; i++) resArray[i]=0 }
-              { for(x in varArr) delete resArray[varArr[x]] }
+              { for(x in varArr) {if(varArr[x] < 0) varArr[x]=NF+varArr[x]; delete resArray[varArr[x]]} }
               { y=0; for(x in resArray) {if(y==0) {printf "%s",$x; y=1} else {printf " %s",$x} }}
               { printf ".%s",$NF }' <<< "$f")"
     done
 }
-
-#array=${@:1:$(($#-1))}
-#len=${#array[@]}
 
 OPTIND=1
 
@@ -55,7 +51,6 @@ mutex=0
 
 indArr=()
 last=""
-len=0
 
 indStr=""
 excStr=""
@@ -70,7 +65,6 @@ while getopts "i:x:" opt; do
             last=${indArr[-1]}
 
             unset 'indArr[${#arr[@]}-1]'
-            len=${#indArr[@]}
             mutex=1
         fi
         ;;
@@ -85,7 +79,7 @@ while getopts "i:x:" opt; do
 done
 
 if [[ ! -z $indStr ]]; then
-    rename_i $indArr $last $len
+    rename_i $indArr $last
 elif [[ ! -z $excStr ]]; then
     rename_x $indArr
 fi
