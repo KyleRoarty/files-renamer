@@ -17,15 +17,23 @@ valid_arg() {
 rename_i(){
     indArr=$1
     last=$2
+    len=${#indArr[@]}
 
     for f in *.*
     do
-        mv -- "$f"\
-              "$(awk -v var="${indArr[*]}" -v num="$last" -F '[ .]'\
-                 'BEGIN {split(var, varArr, / /)}
-                  { for(x in varArr) printf "%s ",$varArr[x] }
-                  { if(l != 0) {printf "- "} }
-                  { printf "%s.%s",$num,$NF }' <<< "$f")"
+        if [[ ! -z "$last" ]]; then
+            mv -- "$f"\
+                  "$(awk -v var="${indArr[*]}" -v l="$len" -v num="$last" -F '[ .]'\
+                     'BEGIN {split(var, varArr, / /)}
+                      { for(x in varArr) printf "%s ",$varArr[x] }
+                      { printf "- " }
+                      { printf "%s.%s",$num,$NF }' <<< "$f")"
+        else
+            mv -- "$f"\
+                  "$(awk -v var="${indArr[*]}" -F '[ .]'\
+                    'BEGIN {split(var, varArr, / /)}
+                     { printf "%s.%s",$var,$NF }' <<< "$f")"
+        fi
     done
 }
 
@@ -63,7 +71,6 @@ while getopts "i:x:" opt; do
             indStr=$OPTARG
             indArr=(${indStr//,/ })
             last=${indArr[-1]}
-
             unset 'indArr[${#arr[@]}-1]'
             mutex=1
         fi
@@ -77,6 +84,7 @@ while getopts "i:x:" opt; do
         fi
     esac
 done
+
 
 if [[ ! -z $indStr ]]; then
     rename_i $indArr $last
