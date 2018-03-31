@@ -23,14 +23,14 @@ rename_i(){
     do
         if [[ ! -z "$last" ]]; then
             mv -- "$f"\
-                  "$(awk -v var="${indArr[*]}" -v l="$len" -v num="$last" -F '[ .]'\
+                  "$(awk -v var="${indArr[*]}" -v l="$len" -v num="$last" -F '[ ._]'\
                      'BEGIN {split(var, varArr, / /)}
                       { for(x in varArr) printf "%s ",$varArr[x] }
                       { printf "- " }
                       { printf "%s.%s",$num,$NF }' <<< "$f")"
         else
             mv -- "$f"\
-                  "$(awk -v var="${indArr[*]}" -F '[ .]'\
+                  "$(awk -v var="${indArr[*]}" -F '[ ._]'\
                     'BEGIN {split(var, varArr, / /)}
                      { printf "%s.%s",$var,$NF }' <<< "$f")"
         fi
@@ -44,7 +44,7 @@ rename_x(){
     for f in *.*
     do
         mv -- "$f"\
-              "$(awk -v var="${indArr[*]}" -F '[ .]'\
+              "$(awk -v var="${indArr[*]}" -F '[ ._]'\
               'BEGIN {split(var, varArr,  / /)}
               { for(i=1; i <NF; i++) resArray[i]=0 }
               { for(x in varArr) {if(varArr[x] < 0) varArr[x]=NF+varArr[x]; delete resArray[varArr[x]]} }
