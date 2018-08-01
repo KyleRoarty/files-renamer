@@ -1,7 +1,9 @@
 #!/bin/bash
 
 show_help() {
-    echo "Usage: ToDo"
+    echo "Splits on space, _, i includes, x excludes"
+    echo "renameFiles.sh -i <num>[,<num>,<num>,...]"
+    echo "renameFiles.sh -x <num>[,<num>,<num>,...]"
 }
 
 valid_arg() {
@@ -64,7 +66,7 @@ indStr=""
 excStr=""
 
 
-while getopts "i:x:" opt; do
+while getopts "i:x:h" opt; do
     case "$opt" in
     i)
         if [[ $mutex -eq 0 ]]; then
@@ -82,6 +84,9 @@ while getopts "i:x:" opt; do
 
             mutex=1
         fi
+        ;;
+    h)
+        show_help
     esac
 done
 
